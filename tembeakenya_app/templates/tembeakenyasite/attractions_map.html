@@ -1,0 +1,125 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attractions Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-geojson@2.0.0"></script>
+    <style>
+        #attraction-list {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            width: 250px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        #attraction-list li {
+            padding: 5px;
+            cursor: pointer;
+        }
+
+        #attraction-list li:hover {
+            background-color: #f0f0f0;
+        }
+
+        .popup-content {
+            max-width: 300px;
+            font-size: 14px;
+        }
+
+        /* Custom styling for the tooltips without borders or background */
+        .attraction-tooltip {
+            font-size: 12px; /* Smaller font size */
+            background-color: transparent !important; /* Transparent background */
+            color: black; /* Text color */
+            border: none !important; /* No border */
+            padding: 0px; /* Remove padding */
+            text-align: center; /* Center text */
+        }
+    </style>
+</head>
+<body>
+    
+    <div id="map" style="height: 600px;"></div>
+
+    <div id="attraction-list">
+        <h3>Attractions List</h3>
+        <ul id="attractions-ul"></ul>
+    </div>
+
+    <script>
+        // Initialize the map
+        var map = L.map('map').setView([12.9716, 77.5946], 10);  // Set initial map center and zoom level
+
+        // Add tile layer (OpenStreetMap)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+        // Attractions data passed from Django view
+        var attractions = {{ attractions|safe }};  // Pass the attractions data from the view
+
+        // Get the attractions list element
+        var attractionsList = document.getElementById("attractions-ul");
+
+        // Loop through attractions and add them to the map and list
+        attractions.forEach(function(attraction) {
+            // Define style based on attraction name
+            var polygonStyle = {
+                color: "green",  // Default color (jungle green)
+                fillColor: "forestgreen",  // Default fill color
+                fillOpacity: 0.5
+            };
+
+            // Change style if the attraction name is 'Kenya'
+            if (attraction.attraction_name === "Kenya") {
+                polygonStyle = {
+                    color: "gray",  // Gray border color
+                    weight: 3,  // Border thickness
+                    fillColor: "beige",  // Solid fill color (beige for land)
+                    fillOpacity: 1  // Solid fill (no transparency)
+                };
+            }
+
+            // Create a GeoJSON layer for the attraction with the style
+            var geojsonLayer = L.geoJSON(attraction.geojson, {
+                style: polygonStyle,
+                onEachFeature: function (feature, layer) {
+                    // Add a tooltip with the attraction name
+                    layer.bindTooltip(attraction.attraction_name, {
+                        permanent: true,  // Make the tooltip always visible
+                        direction: 'center',  // Position it at the center of the shape
+                        className: "attraction-tooltip",  // Custom styling class for tooltips
+                        opacity: 1  // Ensure the tooltip text is visible
+                    });
+                }
+            }).addTo(map); 
+
+            // Popup content with attraction name and SDO Geometry details
+            var popupContent = "<b>" + attraction.attraction_name + "</b><br>" +
+                               "<strong>SDO Geometry:</strong><br>" +
+                               JSON.stringify(attraction.geojson, null, 2);  // Show the GeoJSON object (SDO geometry)
+
+            // Add a popup to the geojsonLayer
+            geojsonLayer.bindPopup(popupContent);
+
+            // Create list item for each attraction and append it to the list
+            var listItem = document.createElement("li");
+            listItem.textContent = attraction.attraction_name;
+
+            // Add additional information on click (show the SDO Geometry details)
+            listItem.onclick = function() {
+                map.setView(geojsonLayer.getBounds().getCenter(), 12);  // Center map on the attraction
+                geojsonLayer.openPopup();  // Open popup for the clicked attraction
+            };
+
+            // Append the list item to the list
+            attractionsList.appendChild(listItem);
+        });
+    </script>
+</body>
+</html>

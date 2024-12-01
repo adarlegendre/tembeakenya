@@ -1,0 +1,35 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ attraction.attraction_name }}</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-geojson@2.0.0"></script>
+</head>
+<body>
+    <h1>{{ attraction.attraction_name }}</h1>
+    <p>Category: {{ attraction.category_id }}</p>
+    <p>City: {{ attraction.city }}</p>
+
+    <div id="map" style="height: 600px;"></div>
+
+    <script>
+        // Initialize the map
+        var map = L.map('map').setView([12.9716, 77.5946], 10);  // Set initial map center and zoom level
+
+        // Add tile layer (OpenStreetMap)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+        // Add GeoJSON data to the map
+        var geojsonLayer = L.geoJSON({{ attraction.geojson|safe }}).addTo(map);  // Add GeoJSON to the map
+
+        // Optionally, bind a popup to the map
+        geojsonLayer.bindPopup("<b>{{ attraction.attraction_name }}</b><br>" + 
+                               "Category: {{ attraction.category_id }}<br>" + 
+                               "City: {{ attraction.city }}");
+    </script>
+</body>
+</html>

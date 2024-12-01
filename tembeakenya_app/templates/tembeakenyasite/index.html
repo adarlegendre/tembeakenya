@@ -4,21 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>TembeaKenya - Explore Kenya</title>
-    
+    <title>Tembea Kenya - Explore Kenya</title>
 </head>
 <body>
     <div class="container">
         <header class="header">
             <div class="logo">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Flag_of_Kenya.svg/1280px-Flag_of_Kenya.svg.png" alt="Kenya Flag" class="flag-img">
                 <h1>TembeaKenya</h1>
             </div>
         </header>
 
-        <section class="main-section">
-            <div class="search-area">
+        <section class="hero-section">
+            <div class="overlay"></div>
+            <div class="hero-content">
                 <h2 class="main-title">Discover the Beauty of Kenya</h2>
-                <h2>{{ sitename }}</h2>
+                <p class="hero-subtitle">From the savannahs to the beaches, explore Kenya’s hidden treasures</p>
+                <p class="hero-subtitle">{{sitename}}</p>
                 <form method="GET" action="" class="search-form">
                     <input type="text" name="query" placeholder="Search Kenya's Wonders..." required>
                     <button type="submit">Search</button>
@@ -26,15 +28,79 @@
             </div>
         </section>
 
+        <!-- Cards Section -->
+        <section class="cards-section">
+            <div class="card">
+                <img src="" alt="Mount Kenya">
+                <h3>Mount Kenya</h3>
+                <div class="rating">⭐ 4.8</div>
+                <p>Kenya’s highest mountain, offering breathtaking hikes and views.</p>
+            </div>
+            <div class="card">
+                <img src="" alt="Maasai Mara">
+                <h3>Maasai Mara</h3>
+                <div class="rating">⭐ 4.9</div>
+                <p>Witness the great migration and diverse wildlife in this stunning reserve.</p>
+            </div>
+            <div class="card">
+                <img src="" alt="Diani Beach">
+                <h3>Diani Beach</h3>
+                <div class="rating">⭐ 4.7</div>
+                <p>Relax at Kenya’s beautiful white-sand beaches and crystal-clear waters.</p>
+            </div>
+            <div class="card">
+                <img src="" alt="Nairobi National Park">
+                <h3>Nairobi National Park</h3>
+                <div class="rating">⭐ 4.6</div>
+                <p>A unique wildlife park located just outside the city, home to diverse animals.</p>
+            </div>
+            <div class="card">
+                <img src="" alt="Lake Nakuru">
+                <h3>Lake Nakuru</h3>
+                <div class="rating">⭐ 4.5</div>
+                <p>Famous for its pink flamingos and stunning scenery, a must-visit!</p>
+            </div>
+            <div class="card">
+                <img src="" alt="Amboseli National Park">
+                <h3>Amboseli National Park</h3>
+                <div class="rating">⭐ 4.8</div>
+                <p>Renowned for its elephants and breathtaking views of Mount Kilimanjaro.</p>
+            </div>
+            <div class="card">
+                <img src="" alt="Lamu Old Town">
+                <h3>Lamu Old Town</h3>
+                <div class="rating">⭐ 4.7</div>
+                <p>Step back in time in Kenya’s oldest Swahili settlement, a UNESCO site.</p>
+            </div>
+            <div class="card">
+                <img src="" alt="Hell's Gate National Park">
+                <h3>Hell's Gate National Park</h3>
+                <div class="rating">⭐ 4.6</div>
+                <p>Known for its stunning landscapes and thrilling bike and hike trails.</p>
+            </div>
+            <div class="card">
+                <img src="" alt="Tsavo National Park">
+                <h3>Tsavo National Park</h3>
+                <div class="rating">⭐ 4.8</div>
+                <p>One of Kenya’s largest parks, famous for its red elephants and biodiversity.</p>
+            </div>
+            <div class="card">
+                <img src="" alt="Shimba Hills">
+                <h3>Shimba Hills</h3>
+                <div class="rating">⭐ 4.5</div>
+                <p>A coastal rainforest reserve offering rich flora and fauna, perfect for nature lovers.</p>
+            </div>
+        </section>
+
         <footer class="footer">
-            <p>&copy; 2024 TembeaKenya. All rights reserved.</p>
+            <p>&copy; 2024 TembeaKenya.  All rights reserved.</p>
         </footer>
     </div>
 </body>
 </html>
+
 <style>
-    
-    /* Reset */
+/* Reset */
 * {
     margin: 0;
     padding: 0;
@@ -44,56 +110,101 @@
 /* Body Styling */
 body {
     font-family: 'Arial', sans-serif;
-    background-color: #f8f9fa;
+    background: linear-gradient(to right, #009639, #d52b1e); /* Gradient matching Kenya flag colors */
     color: #333;
-    height: 100vh;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    align-items: center;
+    min-height: 100vh;
 }
 
 .container {
-    text-align: center;
-    width: 100%;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    background: inherit;
+}
+
+/* Header */
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background-color: #000;
+}
+
+.header .logo {
+    display: flex;
+    align-items: center;
 }
 
 .header .logo h1 {
-    font-size: 24px;
-    color: #4285f4;
-    margin-bottom: 20px;
+    font-size: 50px;
+    color: #fff;
+    margin-left: 10px;
+    font-family: 'Georgia', serif;
 }
 
-.main-section {
+.flag-img {
+    width: 50px;
+    height: auto;
+}
+
+/* Hero Section */
+.hero-section {
+    position: relative;
+    height: 80vh;
+    background: url('https://images.unsplash.com/photo-1561497869-7629b68e6e8b') center/cover no-repeat;
     display: flex;
-    justify-content: center;
     align-items: center;
-    flex-direction: column;
-    min-height: 70vh;
+    justify-content: center;
+    color: white;
+    text-align: center;
+}
+
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.6);
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 600px;
+    padding: 20px;
 }
 
 .main-title {
-    font-size: 36px;
-    color: #333;
+    font-size: 48px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #fff;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.hero-subtitle {
+    font-size: 20px;
+    color: #ddd;
     margin-bottom: 40px;
 }
 
-.search-area {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
+/* Search Form */
 .search-form {
     display: flex;
+    align-items: center;
     width: 100%;
     max-width: 500px;
+    margin: auto;
 }
 
 .search-form input[type="text"] {
     padding: 12px;
     font-size: 18px;
-    border: 1px solid #ddd;
+    border: none;
     border-radius: 24px 0 0 24px;
     width: 80%;
     outline: none;
@@ -102,7 +213,7 @@ body {
 .search-form button {
     padding: 12px 20px;
     font-size: 18px;
-    background-color: #4285f4;
+    background-color: #006400;
     color: white;
     border: none;
     border-radius: 0 24px 24px 0;
@@ -111,32 +222,64 @@ body {
 }
 
 .search-form button:hover {
-    background-color: #357ae8;
+    background-color: #004d00;
 }
 
+/* Cards Section */
+.cards-section {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 20px 20px;
+    background-color: rgba(0, 0, 0, 0.6);
+}
+
+.card {
+    width: 300px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s;
+    background-color: #fff;
+}
+
+.card:hover {
+    transform: scale(1.05);
+}
+
+.card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.card h3 {
+    font-size: 24px;
+    color: #ff0000;
+    margin: 10px 0;
+}
+
+.rating {
+    font-size: 16px;
+    color: #ffcc00;
+    padding: 5px 0;
+    margin-left: 10px;
+}
+
+.card p {
+    font-size: 16px;
+    color: #666;
+    padding: 0 10px 20px;
+}
+
+/* Footer */
 .footer {
     padding: 10px;
-    background-color: #f8f9fa;
-    color: #888;
+    background-color: #000;
+    color: #fff;
     font-size: 14px;
-    width: 100%;
-    position: absolute;
-    bottom: 0;
     text-align: center;
+    margin-top: auto;
 }
-
-@media (max-width: 768px) {
-    .main-title {
-        font-size: 28px;
-    }
-    .search-form {
-        flex-direction: column;
-    }
-    .search-form input[type="text"], .search-form button {
-        width: 100%;
-        border-radius: 24px;
-        margin-bottom: 10px;
-    }
-}
-    </style>
-
+</style>
