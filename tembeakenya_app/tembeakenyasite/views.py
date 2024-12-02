@@ -1,7 +1,11 @@
 from django.shortcuts import render
 from django.template import loader
+from django.shortcuts import render
 from django.http import HttpResponse
 from .models import OracleDatabase
+import logging
+import requests
+import cx_Oracle
 
 
 def index(request):
@@ -43,3 +47,107 @@ def attraction_map(request):
 
     # Render the HTML page
     return render(request, 'tembeakenyasite/attractions_map.html', context)
+
+def insert_image_view(request):
+    """View to insert an image for a specific attraction."""
+    if request.method == 'POST':
+        # Get form data from the POST request
+        attraction_id = request.POST.get('attraction_id')
+        image_url = request.POST.get('image_url')
+        
+        if attraction_id and image_url:
+            try:
+                # Set up logging
+                logging.basicConfig(level=logging.DEBUG)
+                
+                # Define the DSN (Data Source Name) and credentials for Oracle DB connection
+                dsn_tns = cx_Oracle.makedsn("gort.fit.vutbr.cz", 1521, service_name="orclpdb")
+                connection = cx_Oracle.connect(user="xotiena00", password="LUAstazi", dsn=dsn_tns)
+
+                try:
+                    # Fetch the image data from the URL
+                    response = requests.get(image_url)
+                    response.raise_for_status()  # Raise an error for bad responses
+                    image_data = response.content
+
+                    # Prepare a cursor
+                    cursor = connection.cursor()
+
+                    # Check if the sequence 'images_seq' exists, and create it if necessary
+                    try:
+                        cursor.execute("SELECT sequence_name FROM user_sequences WHERE sequence_name = 'IMAGES_SEQ'")
+                        seq_exists = cursor.fetchone()
+
+                        if not seq_exists:
+                            # If the sequence does not exist, create it
+                            cursor.execute("""
+                                CREATE SEQUENCE images_seq
+                                START WITH 1
+                                INCREMENT BY 1
+                                NOMAXVALUE
+                                NOCYCLE
+                                CACHE 20
+                            """)
+                            logging.info("Sequence 'images_seq' created successfully.")
+                    except cx_Oracle.DatabaseError as e:
+                        logging.error(f"Error checking/creating sequence: {e}")
+                        return HttpResponse("Database error while checking/creating sequence.")
+
+                    # Insert a new row with a placeholder ORDImage object
+                    query_init = """
+                        INSERT INTO images (id, attraction_id, photo)
+                        VALUES (images_seq.NEXTVAL, :attraction_id, NULL)
+                    """
+                    cursor.execute(query_init, {"attraction_id": attraction_id})
+
+                    # Select the newly inserted row to lock it for update
+                    query_select = """
+                        SELECT photo
+                        FROM images
+                        WHERE ROWID = (SELECT MAX(ROWID) FROM images WHERE attraction_id = :attraction_id)
+                        FOR UPDATE
+                    """
+                    cursor.execute(query_select, {"attraction_id": attraction_id})
+                    row = cursor.fetchone()
+
+                    # Initialize an ORDImage object
+                    ord_image = cursor.var(cx_Oracle.CLOB)  # Using CLOB or BLOB as appropriate
+
+                    # Set image data into ORDImage object
+                    ord_image.setvalue(0, image_data)
+
+                    # Update the ORDImage object in the database
+                    cursor.execute("""
+                        UPDATE images SET photo = :ord_image WHERE ROWID = :rowid
+                    """, {
+                        "ord_image": ord_image,
+                        "rowid": row[0].rowid
+                    })
+
+                    # Commit the transaction
+                    connection.commit()
+
+                    # Close the cursor and connection
+                    cursor.close()
+                    connection.close()
+
+                    return HttpResponse("Image inserted successfully!")
+
+                except requests.exceptions.RequestException as req_err:
+                    return HttpResponse(f"Request error occurred: {req_err}")
+                except cx_Oracle.DatabaseError as db_err:
+                    error, = db_err.args
+                    return HttpResponse(f"Database error occurred: {error.message}")
+                except Exception as e:
+                    return HttpResponse(f"Unexpected error while inserting image: {e}")
+                
+            except Exception as e:
+                logging.error(f"Error inserting image: {e}")
+                return HttpResponse(f"Error inserting image: {e}")
+        else:
+            return HttpResponse("Please provide both attraction ID and image URL.")
+
+    return render(request, 'tembeakenyasite/insert_image.html')
+
+
+

@@ -1,6 +1,7 @@
 import cx_Oracle
 import logging
 import json
+import requests
 
 # Initialize Oracle Client only once
 lib_dir = r"C:\\oracle\\instantclient_23_5"
@@ -83,6 +84,120 @@ class OracleDatabase:
             geojson_data['coordinates'] = scale_coordinates(geojson_data['coordinates'])
         
         return geojson_data
+    
+
+    @staticmethod
+    def insert_image_for_attraction(attraction_id, image_url):
+        """Inserts a new image for a given attraction."""
+        # Set up basic logging configuration
+        logging.basicConfig(level=logging.DEBUG)
+
+        try:
+            # Step 1: Define the DSN (Data Source Name) and credentials for Oracle DB connection
+            dsn_tns = cx_Oracle.makedsn("gort.fit.vutbr.cz", 1521, service_name="orclpdb")
+            connection = cx_Oracle.connect(user="xotiena00", password="LUAstazi", dsn=dsn_tns)
+
+            # Step 2: Fetch the image data from the URL
+            response = requests.get(image_url)
+            response.raise_for_status()  # Raise an error for bad responses
+            image_data = response.content
+
+            # Step 3: Prepare a cursor for inserting into the images table
+            cursor = connection.cursor()
+
+            # Step 4: Prepare the SQL query to insert a new image
+            query = """
+                INSERT INTO images (attraction_id, photo)
+                VALUES (:attraction_id, :photo)
+            """
+
+            # Step 5: Convert image data to Oracle types (BLOB)
+            ord_image = cx_Oracle.Binary(image_data)  # This will be the BLOB that stores the image
+
+            # Step 6: Example placeholders for photo_si, photo_ac, photo_ch, photo_pc, photo_tx
+        
+            # Step 7: Execute the insert query with the parameters
+            cursor.execute(query, {
+                "attraction_id": attraction_id,
+                "photo": ord_image
+                
+            })
+
+            # Step 8: Commit the transaction
+            connection.commit()
+
+            # Step 9: Close the cursor and connection
+            cursor.close()
+            connection.close()
+
+            logging.info("Image inserted successfully!")
+
+        except requests.exceptions.RequestException as req_err:
+            logging.error(f"Request error occurred: {req_err}")
+        except cx_Oracle.DatabaseError as db_err:
+            error, = db_err.args
+            logging.error(f"Database error occurred: {error.message}")
+        except Exception as e:
+            logging.error(f"Unexpected error while inserting image: {e}")
+            return None
+
+
+    @staticmethod
+    def update_image_for_attraction(attraction_id, new_image_url):
+        """Updates an image related to a specific attraction."""
+        try:
+            # Define the DSN (Data Source Name) and credentials for Oracle DB connection
+            dsn_tns = cx_Oracle.makedsn("gort.fit.vutbr.cz", 1521, service_name="orclpdb")
+            connection = cx_Oracle.connect(user="xotiena00", password="LUAstazi", dsn=dsn_tns)
+
+            # Fetch the new image data from the URL
+            response = requests.get(new_image_url)
+            response.raise_for_status()  # Raise an error for bad responses
+            new_image_data = response.content
+
+            # Prepare a cursor for updating the image in the images table
+            cursor = connection.cursor()
+
+            # Prepare the SQL query to update the image for the specific attraction
+            query = """
+                UPDATE images
+                SET photo = :photo, photo_si = :photo_si, photo_ac = :photo_ac,
+                    photo_ch = :photo_ch, photo_pc = :photo_pc, photo_tx = :photo_tx
+                WHERE attraction_id = :attraction_id
+            """
+
+            # Convert image data to Oracle types (ORDImage, SI_StillImage, etc.)
+            ord_image = cx_Oracle.Binary(new_image_data)  # This will be the BLOB that stores the image
+            # As before, you would ideally convert the BLOB data into Oracle types for the other fields
+            photo_si = ord_image  # Here for simplicity, we're using the same for all
+            photo_ac = ord_image
+            photo_ch = ord_image
+            photo_pc = ord_image
+            photo_tx = ord_image
+
+            # Execute the update query with the parameters
+            cursor.execute(query, {
+                "photo": ord_image,
+                "photo_si": photo_si,
+                "photo_ac": photo_ac,
+                "photo_ch": photo_ch,
+                "photo_pc": photo_pc,
+                "photo_tx": photo_tx,
+                "attraction_id": attraction_id
+            })
+
+            # Commit the transaction
+            connection.commit()
+
+            # Close the cursor and connection
+            cursor.close()
+            connection.close()
+
+            print("Image updated successfully!")
+
+        except Exception as e:
+            logging.error(f"Unexpected error while updating image: {e}")
+            return None
 
     @staticmethod
     def fetch_attraction_by_name(attraction_name):

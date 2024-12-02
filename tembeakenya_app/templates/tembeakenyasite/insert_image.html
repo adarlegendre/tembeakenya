@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Insert Image for Attraction</title>
+</head>
+<body>
+    <h1>Insert Image for Attraction</h1>
+    <form method="POST">
+        {% csrf_token %}
+        <label for="attraction_id">Attraction ID:</label>
+        <input type="text" name="attraction_id" id="attraction_id" required>
+        <br><br>
+        <label for="image_url">Image URL:</label>
+        <input type="url" name="image_url" id="image_url" required>
+        <br><br>
+        <button type="submit">Submit</button>
+    </form>
+</body>
+</html>
