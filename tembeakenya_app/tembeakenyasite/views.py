@@ -8,7 +8,7 @@ import requests
 import cx_Oracle
 
 
-def (reindexquest):
+def (index):
     #connection_status = OracleDatabase.check_connection()
     attraction = OracleDatabase.fetch_attraction_by_name()
     template = loader.get_template("tembeakenyasite/index.html")
