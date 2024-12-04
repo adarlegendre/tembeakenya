@@ -1,0 +1,23 @@
+CREATE OR REPLACE TRIGGER images_generateFeatures
+  BEFORE INSERT OR UPDATE ON images
+  FOR EACH ROW
+DECLARE
+  si ORDSYS.SI_StillImage;
+BEGIN
+  -- Check if there is a BLOB image in the photoblob column
+  IF :NEW.photoblob IS NOT NULL THEN
+    -- Convert the BLOB (photoblob) to ORDImage
+    :NEW.photo := ORDSYS.ORDImage(:NEW.photoblob);
+
+    -- Generate the image features using the ORDImage type
+    si := ORDSYS.SI_StillImage(:NEW.photo.getContent()); -- Use getContent() to pass the BLOB content
+    
+    -- Store the generated features in respective columns
+    :NEW.photo_si := si;  -- Still image feature
+    :NEW.photo_ac := ORDSYS.SI_AverageColor(si);  -- Average color feature
+    :NEW.photo_ch := ORDSYS.SI_ColorHistogram(si);  -- Color histogram feature
+    :NEW.photo_pc := ORDSYS.SI_PositionalColor(si);  -- Positional color feature
+    :NEW.photo_tx := ORDSYS.SI_Texture(si);  -- Texture feature
+  END IF;
+END;
+/

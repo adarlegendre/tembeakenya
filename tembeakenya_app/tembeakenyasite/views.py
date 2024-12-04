@@ -16,11 +16,6 @@ def index(request):
     }
     return HttpResponse(template.render(context, request))
 
-def connectingdb():
-    dsn_tns = cx_Oracle.makedsn('gort.fit.vutbr.cz', '1521', service_name='orclpdb')
-    connection = cx_Oracle.connect(user='xtester1', password='password', dsn=dsn_tns)
-    cursor = connection.cursor()
-   
 
 def attraction_detail(request, attraction_name):
     # Get the tourist attraction by name from the Oracle database
@@ -93,35 +88,45 @@ def insert_image_view(request):
                         logging.error(f"Error checking/creating sequence: {e}")
                         return HttpResponse("Database error while checking/creating sequence.")
 
-                    # Insert a new row with a placeholder ORDImage object
+                    # Insert a new row with a placeholder BLOB object
                     query_init = """
-                        INSERT INTO images (id, attraction_id, photo)
+                        INSERT INTO images (id, attraction_id, photoblob)
                         VALUES (images_seq.NEXTVAL, :attraction_id, NULL)
+                        RETURNING id INTO :image_id
                     """
-                    cursor.execute(query_init, {"attraction_id": attraction_id})
+                    # Create a variable to store the generated ID
+                    image_id = cursor.var(int)
+                    cursor.execute(query_init, {"attraction_id": attraction_id, "image_id": image_id})
 
-                    # Select the newly inserted row to lock it for update
+                    # Get the inserted image ID
+                    inserted_image_id = image_id.getvalue()[0]
+
+                    # Now we know the ID of the inserted image, we can safely lock the row for update
                     query_select = """
-                        SELECT photo
+                        SELECT photoblob
                         FROM images
-                        WHERE ROWID = (SELECT MAX(ROWID) FROM images WHERE attraction_id = :attraction_id)
+                        WHERE id = :image_id
                         FOR UPDATE
                     """
-                    cursor.execute(query_select, {"attraction_id": attraction_id})
+                    cursor.execute(query_select, {"image_id": inserted_image_id})
                     row = cursor.fetchone()
 
-                    # Initialize an ORDImage object
-                    ord_image = cursor.var(cx_Oracle.CLOB)  # Using CLOB or BLOB as appropriate
+                    # If row is None, it means the query didn't find the inserted row
+                    if row is None:
+                        return HttpResponse("Error: Image row not found for update.")
 
-                    # Set image data into ORDImage object
-                    ord_image.setvalue(0, image_data)
+                    # Initialize a BLOB object
+                    blob_image = cursor.var(cx_Oracle.BLOB)  # Using BLOB instead of ORDIMAGE
 
-                    # Update the ORDImage object in the database
+                    # Set image data into BLOB object
+                    blob_image.setvalue(0, image_data)
+
+                    # Update the BLOB object in the database
                     cursor.execute("""
-                        UPDATE images SET photo = :ord_image WHERE ROWID = :rowid
+                        UPDATE images SET photoblob = :blob_image WHERE id = :image_id
                     """, {
-                        "ord_image": ord_image,
-                        "rowid": row[0].rowid
+                        "blob_image": blob_image,
+                        "image_id": inserted_image_id
                     })
 
                     # Commit the transaction

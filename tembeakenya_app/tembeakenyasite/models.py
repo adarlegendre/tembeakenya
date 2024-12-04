@@ -89,57 +89,44 @@ class OracleDatabase:
     @staticmethod
     def insert_image_for_attraction(attraction_id, image_url):
         """Inserts a new image for a given attraction."""
-        # Set up basic logging configuration
-        logging.basicConfig(level=logging.DEBUG)
-
         try:
             # Step 1: Define the DSN (Data Source Name) and credentials for Oracle DB connection
             dsn_tns = cx_Oracle.makedsn("gort.fit.vutbr.cz", 1521, service_name="orclpdb")
-            connection = cx_Oracle.connect(user="xotiena00", password="LUAstazi", dsn=dsn_tns)
-
-            # Step 2: Fetch the image data from the URL
-            response = requests.get(image_url)
-            response.raise_for_status()  # Raise an error for bad responses
-            image_data = response.content
-
-            # Step 3: Prepare a cursor for inserting into the images table
-            cursor = connection.cursor()
-
-            # Step 4: Prepare the SQL query to insert a new image
-            query = """
-                INSERT INTO images (attraction_id, photo)
-                VALUES (:attraction_id, :photo)
-            """
-
-            # Step 5: Convert image data to Oracle types (BLOB)
-            ord_image = cx_Oracle.Binary(image_data)  # This will be the BLOB that stores the image
-
-            # Step 6: Example placeholders for photo_si, photo_ac, photo_ch, photo_pc, photo_tx
-        
-            # Step 7: Execute the insert query with the parameters
-            cursor.execute(query, {
-                "attraction_id": attraction_id,
-                "photo": ord_image
+            
+            # Step 2: Connect to the Oracle Database
+            with cx_Oracle.connect(user="xotiena00", password="LUAstazi", dsn=dsn_tns) as connection:
                 
-            })
+                # Step 3: Fetch the image data from the URL
+                response = requests.get(image_url)
+                response.raise_for_status()  # Raise an error for bad responses
+                image_data = response.content
 
-            # Step 8: Commit the transaction
-            connection.commit()
+                # Step 4: Prepare a cursor for inserting into the images table
+                with connection.cursor() as cursor:
+                    # Step 5: Prepare the SQL query to insert a new image
+                    query = """
+                        INSERT INTO images (attraction_id, photo)
+                        VALUES (:attraction_id, :photo)
+                    """
 
-            # Step 9: Close the cursor and connection
-            cursor.close()
-            connection.close()
+                    # Step 6: Execute the insert query with the parameters
+                    cursor.execute(query, {
+                        "attraction_id": attraction_id,
+                        "photo": image_data
+                    })
 
-            logging.info("Image inserted successfully!")
+                # Step 7: Commit the transaction
+                connection.commit()
+
+            logging.info("Image inserted successfully for attraction_id: %s", attraction_id)
 
         except requests.exceptions.RequestException as req_err:
-            logging.error(f"Request error occurred: {req_err}")
+            logging.error(f"Failed to fetch image from URL: {image_url}. Error: {req_err}")
         except cx_Oracle.DatabaseError as db_err:
             error, = db_err.args
             logging.error(f"Database error occurred: {error.message}")
         except Exception as e:
-            logging.error(f"Unexpected error while inserting image: {e}")
-            return None
+            logging.error(f"Unexpected error: {e}")
 
 
     @staticmethod
@@ -255,5 +242,9 @@ class OracleDatabase:
         except Exception as e:
             logging.error(f"Unexpected error while fetching attraction by name: {e}")
             return None
+
+
+    
+    
 
    
