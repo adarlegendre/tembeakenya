@@ -9,44 +9,152 @@
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet-geojson@2.0.0"></script>
     <style>
+        /* Overall container */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f1f1f1;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Styling for the map */
+        #map {
+            height: 600px;
+            width: 100%;
+        }
+
+        /* Attractions list styling */
         #attraction-list {
             margin-top: 20px;
             padding: 10px;
-            background-color: #f9f9f9;
-            border: 1px solid #ddd;
-            width: 250px;
-            max-height: 400px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 1200px;  /* Limit the width */
             overflow-y: auto;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        #attraction-list h3 {
+            text-align: center;
+            color: #333;
+        }
+
+        #attraction-list ul {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);  /* 5 items per row */
+            gap: 20px;  /* Spacing between items */
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
         }
 
         #attraction-list li {
-            padding: 5px;
+            padding: 20px;
+            background: linear-gradient(135deg, red, green, black); /* Gradient from red to green to black */
+            border: 2px solid black;  /* Black border */
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
         }
 
         #attraction-list li:hover {
-            background-color: #f0f0f0;
+            transform: translateY(-5px);
+            box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.2);
         }
 
-        .popup-content {
-            max-width: 300px;
-            font-size: 14px;
+        #attraction-list li.selected {
+            background-color: #a7c6ed;
+            border-color: #7a9dbd;
         }
 
-        /* Custom styling for the tooltips without borders or background */
+        /* Custom tooltip style */
         .attraction-tooltip {
-            font-size: 12px; /* Smaller font size */
-            background-color: transparent !important; /* Transparent background */
-            color: black; /* Text color */
-            border: none !important; /* No border */
-            padding: 0px; /* Remove padding */
-            text-align: center; /* Center text */
+            font-size: 12px;
+            background-color: transparent !important;
+            color: white;
+            border: none !important;
+            padding: 0px;
+            text-align: center;
+        }
+
+        .attraction-image {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            object-fit: cover;
+        }
+
+        .attraction-info {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            color: white;
+            margin-top: 10px;
+        }
+
+        .attraction-info .name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .attraction-info .details {
+            font-size: 14px;
+            color: #ccc;
+        }
+
+        /* Green bar on the left for some cards */
+        .green-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 10px;
+            height: 100%;
+            background-color: green;
+            border-top-left-radius: 10px;
+            border-bottom-left-radius: 10px;
+        }
+
+        /* Responsive Design for smaller screens */
+        @media (max-width: 1200px) {
+            #attraction-list ul {
+                grid-template-columns: repeat(4, 1fr);  /* 4 items per row on smaller screens */
+            }
+        }
+
+        @media (max-width: 900px) {
+            #attraction-list ul {
+                grid-template-columns: repeat(3, 1fr);  /* 3 items per row on smaller screens */
+            }
+        }
+
+        @media (max-width: 600px) {
+            #attraction-list ul {
+                grid-template-columns: repeat(2, 1fr);  /* 2 items per row on mobile */
+            }
+        }
+
+        @media (max-width: 400px) {
+            #attraction-list ul {
+                grid-template-columns: 1fr;  /* 1 item per row on very small screens */
+            }
         }
     </style>
 </head>
 <body>
     
-    <div id="map" style="height: 600px;"></div>
+    <div id="map"></div>
 
     <div id="attraction-list">
         <h3>Attractions List</h3>
@@ -56,16 +164,16 @@
     <script>
         // Initialize the map
         var map = L.map('map').setView([12.9716, 77.5946], 10);  // Set initial map center and zoom level
-
+    
         // Add tile layer (OpenStreetMap)
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-
+    
         // Attractions data passed from Django view
         var attractions = {{ attractions|safe }};  // Pass the attractions data from the view
-
+    
         // Get the attractions list element
         var attractionsList = document.getElementById("attractions-ul");
-
+    
         // Loop through attractions and add them to the map and list
         attractions.forEach(function(attraction) {
             // Define style based on attraction name
@@ -74,7 +182,7 @@
                 fillColor: "forestgreen",  // Default fill color
                 fillOpacity: 0.5
             };
-
+    
             // Change style if the attraction name is 'Kenya'
             if (attraction.attraction_name === "Kenya") {
                 polygonStyle = {
@@ -84,7 +192,7 @@
                     fillOpacity: 1  // Solid fill (no transparency)
                 };
             }
-
+    
             // Create a GeoJSON layer for the attraction with the style
             var geojsonLayer = L.geoJSON(attraction.geojson, {
                 style: polygonStyle,
@@ -97,26 +205,49 @@
                         opacity: 1  // Ensure the tooltip text is visible
                     });
                 }
-            }).addTo(map); 
-
+            }).addTo(map);
+    
             // Popup content with attraction name and SDO Geometry details
             var popupContent = "<b>" + attraction.attraction_name + "</b><br>" +
                                "<strong>SDO Geometry:</strong><br>" +
                                JSON.stringify(attraction.geojson, null, 2);  // Show the GeoJSON object (SDO geometry)
-
+    
             // Add a popup to the geojsonLayer
             geojsonLayer.bindPopup(popupContent);
-
+    
             // Create list item for each attraction and append it to the list
             var listItem = document.createElement("li");
-            listItem.textContent = attraction.attraction_name;
-
+    
+            // Check if the attraction has a photo (BLOB image)
+            var imageElement = '';
+            if (attraction.photo) {
+                imageElement = `<img class="attraction-image" src="data:image/jpeg;base64,${attraction.photo}" alt="Attraction Image">`;
+            } else {
+                // Placeholder image if no photo is available
+                imageElement = `<img class="attraction-image" src="{% static 'images/placeholder.jpg' %}" alt="Image not available">`;
+            }
+    
+            // Define attraction name container
+            var attractionInfo = `
+                <div class="attraction-info">
+                    <div class="name">${attraction.attraction_name}</div>
+                    <div class="details">Click to view details</div>
+                </div>
+            `;
+    
+            // Define the green accent bar for Kenya (specific attraction)
+            var classToApply = attraction.attraction_name === "Kenya" ? "green-bar" : "";
+    
+            // Set the list item content
+            listItem.className = "attraction-card";
+            listItem.innerHTML = `<div class="${classToApply}"></div>` + imageElement + attractionInfo;
+    
             // Add additional information on click (show the SDO Geometry details)
             listItem.onclick = function() {
                 map.setView(geojsonLayer.getBounds().getCenter(), 12);  // Center map on the attraction
                 geojsonLayer.openPopup();  // Open popup for the clicked attraction
             };
-
+    
             // Append the list item to the list
             attractionsList.appendChild(listItem);
         });
