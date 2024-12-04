@@ -8,11 +8,12 @@ import requests
 import cx_Oracle
 
 
-def index(request):
-    connection_status = OracleDatabase.check_connection()
+def (reindexquest):
+    #connection_status = OracleDatabase.check_connection()
+    attraction = OracleDatabase.fetch_attraction_by_name()
     template = loader.get_template("tembeakenyasite/index.html")
     context = {
-        "sitename": connection_status,
+        "sitename": "Welcome To Kenya",
     }
     return HttpResponse(template.render(context, request))
 

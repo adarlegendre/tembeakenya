@@ -29,15 +29,15 @@ class OracleDatabase:
                     a.id, 
                     a.attraction_name, 
                     SDO_UTIL.TO_GEOJSON(a.shape) AS geojson,
-                    i.photoblob  -- Selecting just one image for each attraction
+                    i.photoblob
                 FROM attractions a
                 LEFT JOIN (
                     SELECT 
                         attraction_id, 
-                        photoblob
+                        photoblob,
+                        ROW_NUMBER() OVER (PARTITION BY attraction_id ORDER BY id) AS rn
                     FROM images
-                    WHERE ROWNUM = 1  -- Get only one image per attraction (first image found)
-                ) i ON a.id = i.attraction_id
+                ) i ON a.id = i.attraction_id AND i.rn = 1
             """
             cursor = connection.cursor()
             cursor.execute(query)
