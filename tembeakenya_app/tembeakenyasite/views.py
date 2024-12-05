@@ -9,12 +9,50 @@ import cx_Oracle
 
 
 def index(request):
-    #connection_status = OracleDatabase.check_connection()
-    template = loader.get_template("tembeakenyasite/index.html")
+    query = request.GET.get('query', '').strip()
+    logging.info(f"User input query: '{query}'")
+    
+    # Fetch the starting attraction (Nairobi, id=7)
+    starting_attraction = OracleDatabase.fetch_tourist_attractions()
+    starting_attraction = next((a for a in starting_attraction if a['id'] == 7), None)
+
+    if not starting_attraction:
+        logging.error("Starting attraction (Nairobi) not found in database.")
+        return render(request, 'tembeakenyasite/index.html', {
+            "sitename": "Welcome To Kenya",
+            "attractions": [],
+            "query": query,
+            "distances": [],
+        })
+
+    distances = []
+    target_attraction = None
+
+    # Fetch the target attraction based on user input
+    if query:
+        target_attraction = OracleDatabase.fetch_attraction_by_name(query)
+
+    if target_attraction:
+        logging.info(f"Target attraction found: {target_attraction}")
+        # Calculate the distance between Nairobi and the target attraction
+        distances.append({
+            'from': starting_attraction['attraction_name'],
+            'to': target_attraction['attraction_name'],
+            'distance': target_attraction.get('distance', 'Distance not available')
+        })
+        # Replace the attractions list with only the target attraction
+        attractions = [target_attraction]
+    else:
+        logging.warning(f"No matching attraction found for query: '{query}'")
+        attractions = []  # No attractions to display if query doesn't match
+
     context = {
         "sitename": "Welcome To Kenya",
+        "attractions": attractions,
+        "query": query,
+        "distances": distances,
     }
-    return HttpResponse(template.render(context, request))
+    return render(request, 'tembeakenyasite/index.html', context)
 
 
 def attraction_detail(request, attraction_name):
@@ -57,7 +95,7 @@ def insert_image_view(request):
                 
                 # Define the DSN (Data Source Name) and credentials for Oracle DB connection
                 dsn_tns = cx_Oracle.makedsn("gort.fit.vutbr.cz", 1521, service_name="orclpdb")
-                connection = cx_Oracle.connect(user="xotiena00", password="LUAstazi", dsn=dsn_tns)
+                connection = cx_Oracle.connect(user="xotuyag00", password="0syIgeF2", dsn=dsn_tns)
 
                 try:
                     # Fetch the image data from the URL

@@ -5,6 +5,8 @@ import requests
 import base64
 
 
+
+
 # Initialize Oracle Client only once
 lib_dir = r"C:\\oracle\\instantclient_23_5"
 try:
@@ -16,12 +18,73 @@ except Exception as err:
 
 class OracleDatabase:
     @staticmethod
+    
+    
+    def fetch_images_by_attraction(attraction_id):
+        """Fetch all images related to an attraction."""
+        try:
+            dsn_tns = cx_Oracle.makedsn("gort.fit.vutbr.cz", 1521, service_name="orclpdb")
+            connection = cx_Oracle.connect(user="xotuyag00", password="0syIgeF2", dsn=dsn_tns)
+
+            query = "SELECT photoblob FROM images WHERE attraction_id = :attraction_id"
+            cursor = connection.cursor()
+            cursor.execute(query, {"attraction_id": attraction_id})
+
+            images = []
+            for row in cursor:
+                photo_blob = row[0]
+                if photo_blob:
+                    images.append(base64.b64encode(photo_blob.read()).decode('utf-8'))
+
+            cursor.close()
+            connection.close()
+            return images
+        except Exception as e:
+            logging.error(f"Error fetching images: {e}")
+            return []
+
+    @staticmethod
+    def calculate_distance_from_db(source_id, target_id):
+        """
+        Calculates the distance between two attractions using SDO_GEOMETRY in the Oracle database.
+        """
+        try:
+            dsn_tns = cx_Oracle.makedsn("gort.fit.vutbr.cz", 1521, service_name="orclpdb")
+            connection = cx_Oracle.connect(user="xotuyag00", password="0syIgeF2", dsn=dsn_tns)
+
+            query = """
+                SELECT SDO_GEOM.SDO_DISTANCE(a1.shape, a2.shape, 0.005) AS distance
+                FROM attractions a1, attractions a2
+                WHERE a1.id = :source_id AND a2.id = :target_id
+            """
+            cursor = connection.cursor()
+
+            # Log the IDs being queried
+            logging.info(f"Calculating distance between source_id={source_id} and target_id={target_id}")
+
+            cursor.execute(query, {"source_id": source_id, "target_id": target_id})
+            result = cursor.fetchone()
+
+            cursor.close()
+            connection.close()
+
+            if result:
+                logging.info(f"Distance calculated: {result[0]} km")
+                return result[0]  # Return the distance
+            else:
+                logging.warning(f"No distance found between source_id={source_id} and target_id={target_id}")
+                return None
+        except cx_Oracle.DatabaseError as e:
+            logging.error(f"Database error while calculating distance: {e}")
+            return None
+    
+    @staticmethod    
     def fetch_tourist_attractions():
         """Fetches tourist attraction data from the database including SDO_GEOMETRY and scales the coordinates."""
         try:
             # Define the DSN (Data Source Name) and credentials for Oracle DB connection
             dsn_tns = cx_Oracle.makedsn("gort.fit.vutbr.cz", 1521, service_name="orclpdb")
-            connection = cx_Oracle.connect(user="xotiena00", password="LUAstazi", dsn=dsn_tns)
+            connection = cx_Oracle.connect(user="xotuyag00", password="0syIgeF2", dsn=dsn_tns)
 
             # Query to fetch attractions and SDO_GEOMETRY (converted to GeoJSON)
             query = """
@@ -116,7 +179,7 @@ class OracleDatabase:
             dsn_tns = cx_Oracle.makedsn("gort.fit.vutbr.cz", 1521, service_name="orclpdb")
             
             # Step 2: Connect to the Oracle Database
-            with cx_Oracle.connect(user="xotiena00", password="LUAstazi", dsn=dsn_tns) as connection:
+            with cx_Oracle.connect(user="xotuyag00", password="0syIgeF2", dsn=dsn_tns) as connection:
                 
                 # Step 3: Fetch the image data from the URL
                 response = requests.get(image_url)
@@ -157,7 +220,7 @@ class OracleDatabase:
         try:
             # Define the DSN (Data Source Name) and credentials for Oracle DB connection
             dsn_tns = cx_Oracle.makedsn("gort.fit.vutbr.cz", 1521, service_name="orclpdb")
-            connection = cx_Oracle.connect(user="xotiena00", password="LUAstazi", dsn=dsn_tns)
+            connection = cx_Oracle.connect(user="xotuyag00", password="0syIgeF2", dsn=dsn_tns)
 
             # Fetch the new image data from the URL
             response = requests.get(new_image_url)
@@ -210,59 +273,68 @@ class OracleDatabase:
 
     @staticmethod
     def fetch_attraction_by_name(attraction_name):
-        """Fetches a tourist attraction by its name."""
+        """
+        Fetches a tourist attraction by its name and calculates distance from Nairobi.
+        """
         try:
-            # Define the DSN (Data Source Name) and credentials for Oracle DB connection
-            dsn_tns = cx_Oracle.makedsn("gort.fit.vutbr.cz", 1521, service_name="orclpdb")
-            connection = cx_Oracle.connect(user="xotiena00", password="LUAstazi", dsn=dsn_tns)
 
-            # Query to fetch a single attraction by its name
+            logging.info(f"Searching for attraction with name: {attraction_name}")
+            
+            dsn_tns = cx_Oracle.makedsn("gort.fit.vutbr.cz", 1521, service_name="orclpdb")
+            connection = cx_Oracle.connect(user="xotuyag00", password="0syIgeF2", dsn=dsn_tns)
+
+            # Query to get the attraction details (including geojson)
             query = """
-                SELECT id, attraction_name, category_id, city, 
-                       SDO_UTIL.TO_GEOJSON(shape) as geojson
+                SELECT id, attraction_name, category_id, 
+                    SDO_UTIL.TO_GEOJSON(shape) AS geojson
                 FROM attractions
-                WHERE attraction_name = :attraction_name
+                WHERE LOWER(attraction_name) = :attraction_name
             """
             cursor = connection.cursor()
-            cursor.execute(query, {"attraction_name": attraction_name})
-            
-            # Fetch the result
-            attraction = cursor.fetchone()
-            
-            if attraction:
-                # Read LOB to get the string value (if the column is of type LOB)
-                geojson_lob = attraction[4]  # LOB object for geojson
+            cursor.execute(query, {"attraction_name": attraction_name.lower()})
+            result = cursor.fetchone()
 
+            if result:
+                logging.info(f"Attraction found: {result}")
+                # Handle LOB for geojson
+                geojson_lob = result[3]  # This is the LOB object
                 if isinstance(geojson_lob, cx_Oracle.LOB):
-                    geojson_str = geojson_lob.read()  # Read the LOB
-                    # If the result is bytes, decode to string
-                    if isinstance(geojson_str, bytes):
-                        geojson_str = geojson_str.decode('utf-8')  # Decode bytes to string
+                    geojson_str = geojson_lob.read()  # Read the LOB into a string
                 else:
-                    geojson_str = geojson_lob  # In case it's already a string
+                    geojson_str = geojson_lob  # If it's already a string
 
-                # Convert the result into a dictionary
                 attraction_data = {
-                    "id": attraction[0],
-                    "attraction_name": attraction[1],
-                    "category_id": attraction[2],
-                    "city": attraction[3],
-                    "geojson": json.loads(geojson_str)  # Now you can safely parse the JSON
+                    "id": result[0],
+                    "attraction_name": result[1],
+                    "category_id": result[2],
+                    "geojson": json.loads(geojson_str) if geojson_str else None
                 }
 
-                # Close the cursor and connection
+                # Query to calculate the distance from Nairobi (id = 7)
+                distance_query = """
+                    SELECT SDO_GEOM.SDO_DISTANCE(a1.shape, a2.shape, 0.005) AS distance
+                    FROM attractions a1, attractions a2
+                    WHERE a1.id = 7 AND a2.id = :target_id
+                """
+                cursor.execute(distance_query, {"target_id": attraction_data["id"]})
+                distance_result = cursor.fetchone()
+
+                if distance_result:
+                    attraction_data["distance"] = distance_result[0]
+                else:
+                    attraction_data["distance"] = None
+
                 cursor.close()
                 connection.close()
 
                 return attraction_data
             else:
-                # No attraction found
+                logging.warning(f"No attraction found with name: {attraction_name}")
                 cursor.close()
                 connection.close()
                 return None
-        
-        except Exception as e:
-            logging.error(f"Unexpected error while fetching attraction by name: {e}")
+        except cx_Oracle.DatabaseError as e:
+            logging.error(f"Database error while fetching attraction by name: {e}")
             return None
 
 

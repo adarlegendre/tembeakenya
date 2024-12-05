@@ -20,76 +20,49 @@
             <div class="hero-content">
                 <h2 class="main-title">Discover the Beauty of Kenya</h2>
                 <p class="hero-subtitle">From the savannahs to the beaches, explore Kenya’s hidden treasures</p>
-                <p class="hero-subtitle">{{sitename}}</p>
+                <p class="hero-subtitle">{{ sitename }}</p>
                 <form method="GET" action="" class="search-form">
-                    <input type="text" name="query" placeholder="Search Kenya's Wonders..." required>
+                    <input type="text" name="query" placeholder="Search Kenya's Wonders..." value="{{ query }}" required>
                     <button type="submit">Search</button>
                 </form>
             </div>
         </section>
 
-        <!-- Cards Section -->
+       
         <section class="cards-section">
+    {% if attractions %}
+        <h2>Attraction Details</h2>
+        {% for attraction in attractions %}
             <div class="card">
-                <img src="" alt="Mount Kenya">
-                <h3>Mount Kenya</h3>
-                <div class="rating">⭐ 4.8</div>
-                <p>Kenya’s highest mountain, offering breathtaking hikes and views.</p>
+                {% if attraction.photo %}
+                    <img src="data:image/jpeg;base64,{{ attraction.photo }}" alt="{{ attraction.attraction_name }}">
+                {% else %}
+                    <p>No image available</p>
+                {% endif %}
+                <h3>{{ attraction.attraction_name }}</h3>
+                <p>Category: {{ attraction.category_id }}</p>
+                <p>Size: {{ attraction.size|floatformat:2 }} sq meters</p> <!-- Display the calculated size -->
             </div>
-            <div class="card">
-                <img src="" alt="Maasai Mara">
-                <h3>Maasai Mara</h3>
-                <div class="rating">⭐ 4.9</div>
-                <p>Witness the great migration and diverse wildlife in this stunning reserve.</p>
-            </div>
-            <div class="card">
-                <img src="" alt="Diani Beach">
-                <h3>Diani Beach</h3>
-                <div class="rating">⭐ 4.7</div>
-                <p>Relax at Kenya’s beautiful white-sand beaches and crystal-clear waters.</p>
-            </div>
-            <div class="card">
-                <img src="" alt="Nairobi National Park">
-                <h3>Nairobi National Park</h3>
-                <div class="rating">⭐ 4.6</div>
-                <p>A unique wildlife park located just outside the city, home to diverse animals.</p>
-            </div>
-            <div class="card">
-                <img src="" alt="Lake Nakuru">
-                <h3>Lake Nakuru</h3>
-                <div class="rating">⭐ 4.5</div>
-                <p>Famous for its pink flamingos and stunning scenery, a must-visit!</p>
-            </div>
-            <div class="card">
-                <img src="" alt="Amboseli National Park">
-                <h3>Amboseli National Park</h3>
-                <div class="rating">⭐ 4.8</div>
-                <p>Renowned for its elephants and breathtaking views of Mount Kilimanjaro.</p>
-            </div>
-            <div class="card">
-                <img src="" alt="Lamu Old Town">
-                <h3>Lamu Old Town</h3>
-                <div class="rating">⭐ 4.7</div>
-                <p>Step back in time in Kenya’s oldest Swahili settlement, a UNESCO site.</p>
-            </div>
-            <div class="card">
-                <img src="" alt="Hell's Gate National Park">
-                <h3>Hell's Gate National Park</h3>
-                <div class="rating">⭐ 4.6</div>
-                <p>Known for its stunning landscapes and thrilling bike and hike trails.</p>
-            </div>
-            <div class="card">
-                <img src="" alt="Tsavo National Park">
-                <h3>Tsavo National Park</h3>
-                <div class="rating">⭐ 4.8</div>
-                <p>One of Kenya’s largest parks, famous for its red elephants and biodiversity.</p>
-            </div>
-            <div class="card">
-                <img src="" alt="Shimba Hills">
-                <h3>Shimba Hills</h3>
-                <div class="rating">⭐ 4.5</div>
-                <p>A coastal rainforest reserve offering rich flora and fauna, perfect for nature lovers.</p>
-            </div>
+        {% endfor %}
+    {% else %}
+        <p>No attractions found for "{{ query }}".</p>
+    {% endif %}
+</section>
+        
+        <!-- Display Distance -->
+        <section class="distance-section">
+            {% if distances %}
+                <h3>Distance from {{ distances.0.from }}</h3>
+                <ul>
+                    {% for distance in distances %}
+                        <li>
+                            To <strong>{{ distance.to }}</strong>: {{ distance.distance|floatformat:2 }} kms
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No distance information available.</p>
+            {% endif %}
         </section>
 
         <footer class="footer">
@@ -98,6 +71,7 @@
     </div>
 </body>
 </html>
+
 
 <style>
 /* Reset */
@@ -271,6 +245,55 @@ body {
     font-size: 16px;
     color: #666;
     padding: 0 10px 20px;
+}
+
+/* Distance Section */
+.distance-section {
+    background-color: rgba(255, 255, 255, 0.8); /* Subtle white background with transparency */
+    padding: 20px;
+    border-radius: 8px;
+    margin: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.distance-section h3 {
+    font-size: 24px;
+    font-weight: bold;
+    color: #006400; /* Dark green for the title */
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.distance-section ul {
+    list-style-type: none; /* Remove default list styling */
+    padding: 0;
+}
+
+.distance-section li {
+    background: linear-gradient(to right, #009639, #d52b1e); /* Gradient matching Kenya's flag */
+    color: white;
+    padding: 10px 15px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    font-size: 18px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease;
+}
+
+.distance-section li strong {
+    font-weight: bold;
+    color: #ffcc00; /* Highlight destinations in gold */
+}
+
+.distance-section li:hover {
+    transform: scale(1.05); /* Slight zoom on hover */
+    background: linear-gradient(to right, #d52b1e, #009639); /* Reverse gradient on hover */
+}
+
+.distance-section p {
+    text-align: center;
+    font-size: 16px;
+    color: #333;
 }
 
 /* Footer */
