@@ -1,16 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>Tembea Kenya - Explore Kenya</title>
 </head>
+
 <body>
     <div class="container">
         <header class="header">
             <div class="logo">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Flag_of_Kenya.svg/1280px-Flag_of_Kenya.svg.png" alt="Kenya Flag" class="flag-img">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Flag_of_Kenya.svg/1280px-Flag_of_Kenya.svg.png"
+                    alt="Kenya Flag" class="flag-img">
                 <h1>TembeaKenya</h1>
             </div>
         </header>
@@ -22,7 +25,8 @@
                 <p class="hero-subtitle">From the savannahs to the beaches, explore Kenya’s hidden treasures</p>
                 <p class="hero-subtitle">{{ sitename }}</p>
                 <form method="GET" action="" class="search-form">
-                    <input type="text" name="query" placeholder="Search Kenya's Wonders..." value="{{ query }}" required>
+                    <input type="text" name="query" placeholder="Search Kenya's Wonders..." value="{{ query }}"
+                        required>
                     <button type="submit">Search</button>
                 </form>
             </div>
@@ -30,23 +34,25 @@
 
         <!-- Cards Section -->
         <section class="cards-section">
+            <h2 class="cards-title">Attraction Details</h2>
             {% if attractions %}
-                <h2>Attraction Details</h2>
-                {% for attraction in attractions %}
-                    <div class="card">
-                        <h3>{{ attraction.attraction_name }}</h3>
-                        <p>Category ID: {{ attraction.category_id }}</p>
+            <div class="cards-container">
+            {% for attraction in attractions %}
+            <div class="card">
+                <h3>{{ attraction.attraction_name }}</h3>
+                <p>Category ID: {{ attraction.category_id }}</p>
 
-                        <!-- Main Image -->
-                        <h4>View Polygon</h4>
+                <!-- Main Image -->
+                
 
-    <a href="http://127.0.0.1:8000/map" class="view-polygon-link">View Polygon</a>
+                <a href="http://127.0.0.1:8000/map" class="view-polygon-link">view exact location</a>
 
-    
-                    </div>
-                {% endfor %}
+
+            </div>
+            {% endfor %}
+            </div>
             {% else %}
-                <p>No attractions found for "{{ query }}".</p>
+            <p>No attractions found for "{{ query }}".</p>
             {% endif %}
         </section>
 
@@ -54,23 +60,23 @@
         <section class="gallery-section">
             <h2>Gallery</h2>
             {% if attractions and attractions.0.images %}
-                <div class="image-gallery">
-                    {% for image in attractions.0.images %}
-                        <img src="data:image/jpeg;base64,{{ image }}" alt="Attraction Image" class="gallery-image">
-                    {% endfor %}
-                </div>
+            <div class="image-gallery">
+                {% for image in attractions.0.images %}
+                <img src="data:image/jpeg;base64,{{ image }}" alt="Attraction Image" class="gallery-image">
+                {% endfor %}
+            </div>
             {% else %}
-                <p>No additional images available.</p>
+            <p>No additional images available.</p>
             {% endif %}
         </section>
 
         <!-- Distance Section -->
         {% if distances %}
-            <section class="distance-section">
-                <h3>The distance from Nairobi to {{ distances.0.to }} is {{ distances.0.distance|floatformat:2 }} km</h3>
-            </section>
+        <section class="distance-section">
+            <h3>The distance from Nairobi to {{ distances.0.to }} is {{ distances.0.distance|floatformat:2 }} km</h3>
+        </section>
         {% endif %}
-        
+
         <footer class="footer">
             <p>&copy; 2024 Tembea Kenya. All rights reserved.</p>
         </footer>
@@ -88,7 +94,8 @@
         /* General Styling */
         body {
             font-family: 'Arial', sans-serif;
-            background: linear-gradient(to right, #009639, #d52b1e); /* Gradient matching Kenya flag colors */
+            background: linear-gradient(to right, #009639, #d52b1e);
+            /* Gradient matching Kenya flag colors */
             color: #333;
             display: flex;
             flex-direction: column;
@@ -100,37 +107,79 @@
             flex-direction: column;
             flex-grow: 1;
         }
+
         .header {
-    display: flex;                /* Enable Flexbox */
-    align-items: center;          /* Vertical centering */
-    justify-content: center;      /* Horizontal centering */
-    padding: 20px;                /* Add some padding for spacing */
-    background-color: #000;       /* Black background */
-    text-align: center;           /* Ensure the text is centered */
-}
+            display: flex;
+            /* Enable Flexbox */
+            align-items: center;
+            /* Vertical centering */
+            justify-content: center;
+            /* Horizontal centering */
+            padding: 20px;
+            /* Add some padding for spacing */
+            background-color: #000;
+            /* Black background */
+            text-align: center;
+            /* Ensure the text is centered */
+        }
 
-.header .logo {
-    display: flex;                /* Enable Flexbox for logo and text */
-    align-items: center;          /* Vertical alignment for logo and text */
-    justify-content: center;      /* Center both elements horizontally */
-}
+        .header .logo {
+            display: flex;
+            /* Enable Flexbox for logo and text */
+            align-items: center;
+            /* Vertical alignment for logo and text */
+            justify-content: center;
+            /* Center both elements horizontally */
+        }
 
-.flag-img {
-    width: 50px;                  /* Set appropriate width for the logo */
-    height: auto;                 /* Maintain aspect ratio */
-    object-fit: contain;          /* Ensure it fits within the given size */
-    margin-right: 10px;           /* Space between the logo and the title */
-}
+        .flag-img {
+            width: 50px;
+            /* Set appropriate width for the logo */
+            height: auto;
+            /* Maintain aspect ratio */
+            object-fit: contain;
+            /* Ensure it fits within the given size */
+            margin-right: 10px;
+            /* Space between the logo and the title */
+        }
 
-.header .logo h1 {
-    font-size: 50px;              /* Large text for the title */
-    color: #fff;                  /* White text */
-    font-family: 'Georgia', serif;
-}
+        .header .logo h1 {
+            font-size: 50px;
+            /* Large text for the title */
+            color: #fff;
+            /* White text */
+            font-family: 'Georgia', serif;
+        }
+
+        .view-polygon-link {
+            display: inline-block;
+            padding: 10px 20px;
+            /* Padding inside the button */
+            font-size: 16px;
+            /* Button text size */
+            color: #fff;
+            /* White text color */
+            background-color: #007BFF;
+            /* Button background color (blue) */
+            text-decoration: none;
+            /* Remove underline from the link */
+            border-radius: 5px;
+            /* Rounded corners */
+            transition: background-color 0.3s ease;
+            /* Smooth hover effect */
+            border: 1px solid #0056b3;
+            /* Border to match button style */
+        }
+
+        .view-polygon-link:hover {
+            background-color: #0056b3;
+            /* Darker blue on hover */
+        }
 
         /* Hero Section */
         .hero-section {
             position: relative;
+            
             height: 80vh;
             background: url('https://images.unsplash.com/photo-1561497869-7629b68e6e8b') center/cover no-repeat;
             display: flex;
@@ -140,9 +189,10 @@
             text-align: center;
         }
 
-   
+
 
         .overlay {
+            
             position: absolute;
             top: 0;
             left: 0;
@@ -152,10 +202,12 @@
         }
 
         .hero-content {
+
             position: relative;
             z-index: 2;
             max-width: 600px;
             padding: 20px;
+            
         }
 
         .main-title {
@@ -207,26 +259,42 @@
 
         /* Cards Section */
         .cards-section {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 20px;
-            padding: 20px 20px;
-            background-color: rgba(0, 0, 0, 0.6);
-        }
+    padding: 20px;
+    background-color: rgba(0, 0, 0, 0.6);
+    text-align: center; /* Center-align the heading */
+}
 
-        .card {
-            width: 300px;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-            transition: transform 0.3s;
-            background-color: #fff;
-        }
+.cards-title {
+    font-size: 28px;
+    font-weight: bold;
+    color: #ffffff; /* White text for the title */
+    margin-bottom: 20px; /* Add space below the title */
+    text-align: center;
+}
 
-        .card:hover {
-            transform: scale(1.05);
-        }
+.cards-container {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 20px 0; /* Add space around the cards */
+}
+
+.card {
+    width: 400px;
+    height: 150px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s;
+    background-color: #fff;
+    text-align: left;
+}
+
+.card:hover {
+    transform: scale(1.05);
+}
+
 
         .card img {
             width: 100%;
@@ -236,7 +304,7 @@
 
         .card h3 {
             font-size: 24px;
-            color: #ff0000;
+            color: #030303;
             margin: 10px 0;
         }
 
@@ -263,7 +331,8 @@
 
         /* Distance Section */
         .distance-section {
-            background-color: rgba(255, 255, 255, 0.8); /* Subtle white background with transparency */
+            background-color: rgba(255, 255, 255, 0.8);
+            /* Subtle white background with transparency */
             padding: 20px;
             border-radius: 8px;
             margin: 20px;
@@ -288,4 +357,5 @@
         }
     </style>
 </body>
+
 </html>
