@@ -17,66 +17,6 @@ except Exception as err:
 
 
 class OracleDatabase:
-    @staticmethod
-    
-    
-    def fetch_images_by_attraction(attraction_id):
-        """Fetch all images related to an attraction."""
-        try:
-            dsn_tns = cx_Oracle.makedsn("gort.fit.vutbr.cz", 1521, service_name="orclpdb")
-            connection = cx_Oracle.connect(user="xotuyag00", password="0syIgeF2", dsn=dsn_tns)
-
-            query = "SELECT photoblob FROM images WHERE attraction_id = :attraction_id"
-            cursor = connection.cursor()
-            cursor.execute(query, {"attraction_id": attraction_id})
-
-            images = []
-            for row in cursor:
-                photo_blob = row[0]
-                if photo_blob:
-                    images.append(base64.b64encode(photo_blob.read()).decode('utf-8'))
-
-            cursor.close()
-            connection.close()
-            return images
-        except Exception as e:
-            logging.error(f"Error fetching images: {e}")
-            return []
-
-    @staticmethod
-    def calculate_distance_from_db(source_id, target_id):
-        """
-        Calculates the distance between two attractions using SDO_GEOMETRY in the Oracle database.
-        """
-        try:
-            dsn_tns = cx_Oracle.makedsn("gort.fit.vutbr.cz", 1521, service_name="orclpdb")
-            connection = cx_Oracle.connect(user="xotuyag00", password="0syIgeF2", dsn=dsn_tns)
-
-            query = """
-                SELECT SDO_GEOM.SDO_DISTANCE(a1.shape, a2.shape, 0.005) AS distance
-                FROM attractions a1, attractions a2
-                WHERE a1.id = :source_id AND a2.id = :target_id
-            """
-            cursor = connection.cursor()
-
-            # Log the IDs being queried
-            logging.info(f"Calculating distance between source_id={source_id} and target_id={target_id}")
-
-            cursor.execute(query, {"source_id": source_id, "target_id": target_id})
-            result = cursor.fetchone()
-
-            cursor.close()
-            connection.close()
-
-            if result:
-                logging.info(f"Distance calculated: {result[0]} km")
-                return result[0]  # Return the distance
-            else:
-                logging.warning(f"No distance found between source_id={source_id} and target_id={target_id}")
-                return None
-        except cx_Oracle.DatabaseError as e:
-            logging.error(f"Database error while calculating distance: {e}")
-            return None
     
     @staticmethod    
     def fetch_tourist_attractions():
@@ -277,8 +217,6 @@ class OracleDatabase:
         Fetches a tourist attraction by its name and calculates distance from Nairobi.
         """
         try:
-
-            logging.info(f"Searching for attraction with name: {attraction_name}")
             
             dsn_tns = cx_Oracle.makedsn("gort.fit.vutbr.cz", 1521, service_name="orclpdb")
             connection = cx_Oracle.connect(user="xotuyag00", password="0syIgeF2", dsn=dsn_tns)
@@ -323,6 +261,23 @@ class OracleDatabase:
                     attraction_data["distance"] = distance_result[0]
                 else:
                     attraction_data["distance"] = None
+
+                    # Query to fetch all images associated with the attraction
+                images_query = """
+                    SELECT photoblob FROM images
+                    WHERE attraction_id = :attraction_id
+                """
+                cursor.execute(images_query, {"attraction_id": attraction_data["id"]})
+                images = []
+                for row in cursor:
+                    photo_blob = row[0]  # Assuming the image is stored as a BLOB
+                    if photo_blob:
+                        # Convert the BLOB to a Base64-encoded string
+                        images.append(base64.b64encode(photo_blob.read()).decode('utf-8'))
+
+                # Add images to the attraction data
+                attraction_data["images"] = images
+    
 
                 cursor.close()
                 connection.close()

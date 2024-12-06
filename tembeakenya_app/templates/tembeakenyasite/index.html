@@ -28,281 +28,264 @@
             </div>
         </section>
 
-       
+        <!-- Cards Section -->
         <section class="cards-section">
-    {% if attractions %}
-        <h2>Attraction Details</h2>
-        {% for attraction in attractions %}
-            <div class="card">
-                {% if attraction.photo %}
-                    <img src="data:image/jpeg;base64,{{ attraction.photo }}" alt="{{ attraction.attraction_name }}">
-                {% else %}
-                    <p>No image available</p>
-                {% endif %}
-                <h3>{{ attraction.attraction_name }}</h3>
-                <p>Category: {{ attraction.category_id }}</p>
-                <p>Size: {{ attraction.size|floatformat:2 }} sq meters</p> <!-- Display the calculated size -->
-            </div>
-        {% endfor %}
-    {% else %}
-        <p>No attractions found for "{{ query }}".</p>
-    {% endif %}
-</section>
-        
-        <!-- Display Distance -->
-        <section class="distance-section">
-            {% if distances %}
-                <h3>Distance from {{ distances.0.from }}</h3>
-                <ul>
-                    {% for distance in distances %}
-                        <li>
-                            To <strong>{{ distance.to }}</strong>: {{ distance.distance|floatformat:2 }} kms
-                        </li>
-                    {% endfor %}
-                </ul>
+            {% if attractions %}
+                <h2>Attraction Details</h2>
+                {% for attraction in attractions %}
+                    <div class="card">
+                        <h3>{{ attraction.attraction_name }}</h3>
+                        <p>Category ID: {{ attraction.category_id }}</p>
+
+                        <!-- Main Image -->
+                        <h4>View Polygon</h4>
+
+    <a href="http://127.0.0.1:8000/map" class="view-polygon-link">View Polygon</a>
+
+    
+                    </div>
+                {% endfor %}
             {% else %}
-                <p>No distance information available.</p>
+                <p>No attractions found for "{{ query }}".</p>
             {% endif %}
         </section>
 
+        <!-- Images Section -->
+        <section class="gallery-section">
+            <h2>Gallery</h2>
+            {% if attractions and attractions.0.images %}
+                <div class="image-gallery">
+                    {% for image in attractions.0.images %}
+                        <img src="data:image/jpeg;base64,{{ image }}" alt="Attraction Image" class="gallery-image">
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p>No additional images available.</p>
+            {% endif %}
+        </section>
+
+        <!-- Distance Section -->
+        {% if distances %}
+            <section class="distance-section">
+                <h3>The distance from Nairobi to {{ distances.0.to }} is {{ distances.0.distance|floatformat:2 }} km</h3>
+            </section>
+        {% endif %}
+        
         <footer class="footer">
-            <p>&copy; 2024 TembeaKenya.  All rights reserved.</p>
+            <p>&copy; 2024 Tembea Kenya. All rights reserved.</p>
         </footer>
     </div>
-</body>
-</html>
 
+    <!-- CSS Styling -->
+    <style>
+        /* Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-<style>
-/* Reset */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
+        /* General Styling */
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to right, #009639, #d52b1e); /* Gradient matching Kenya flag colors */
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
 
-/* Body Styling */
-body {
-    font-family: 'Arial', sans-serif;
-    background: linear-gradient(to right, #009639, #d52b1e); /* Gradient matching Kenya flag colors */
-    color: #333;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-}
-
-.container {
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-    background: inherit;
-}
-
-/* Header */
-.header {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    background-color: #000;
+        .container {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+        .header {
+    display: flex;                /* Enable Flexbox */
+    align-items: center;          /* Vertical centering */
+    justify-content: center;      /* Horizontal centering */
+    padding: 20px;                /* Add some padding for spacing */
+    background-color: #000;       /* Black background */
+    text-align: center;           /* Ensure the text is centered */
 }
 
 .header .logo {
-    display: flex;
-    align-items: center;
-}
-
-.header .logo h1 {
-    font-size: 50px;
-    color: #fff;
-    margin-left: 10px;
-    font-family: 'Georgia', serif;
+    display: flex;                /* Enable Flexbox for logo and text */
+    align-items: center;          /* Vertical alignment for logo and text */
+    justify-content: center;      /* Center both elements horizontally */
 }
 
 .flag-img {
-    width: 50px;
-    height: auto;
+    width: 50px;                  /* Set appropriate width for the logo */
+    height: auto;                 /* Maintain aspect ratio */
+    object-fit: contain;          /* Ensure it fits within the given size */
+    margin-right: 10px;           /* Space between the logo and the title */
 }
 
-/* Hero Section */
-.hero-section {
-    position: relative;
-    height: 80vh;
-    background: url('https://images.unsplash.com/photo-1561497869-7629b68e6e8b') center/cover no-repeat;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    text-align: center;
+.header .logo h1 {
+    font-size: 50px;              /* Large text for the title */
+    color: #fff;                  /* White text */
+    font-family: 'Georgia', serif;
 }
 
-.overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: 100%;
-    background: rgba(0, 0, 0, 0.6);
-}
+        /* Hero Section */
+        .hero-section {
+            position: relative;
+            height: 80vh;
+            background: url('https://images.unsplash.com/photo-1561497869-7629b68e6e8b') center/cover no-repeat;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+        }
 
-.hero-content {
-    position: relative;
-    z-index: 2;
-    max-width: 600px;
-    padding: 20px;
-}
+   
 
-.main-title {
-    font-size: 48px;
-    font-weight: bold;
-    margin-bottom: 20px;
-    color: #fff;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-}
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.6);
+        }
 
-.hero-subtitle {
-    font-size: 20px;
-    color: #ddd;
-    margin-bottom: 40px;
-}
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 600px;
+            padding: 20px;
+        }
 
-/* Search Form */
-.search-form {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    max-width: 500px;
-    margin: auto;
-}
+        .main-title {
+            font-size: 48px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
 
-.search-form input[type="text"] {
-    padding: 12px;
-    font-size: 18px;
-    border: none;
-    border-radius: 24px 0 0 24px;
-    width: 80%;
-    outline: none;
-}
+        .hero-subtitle {
+            font-size: 20px;
+            color: #ddd;
+            margin-bottom: 40px;
+        }
 
-.search-form button {
-    padding: 12px 20px;
-    font-size: 18px;
-    background-color: #006400;
-    color: white;
-    border: none;
-    border-radius: 0 24px 24px 0;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
+        /* Search Form */
+        .search-form {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            max-width: 500px;
+            margin: auto;
+        }
 
-.search-form button:hover {
-    background-color: #004d00;
-}
+        .search-form input[type="text"] {
+            padding: 12px;
+            font-size: 18px;
+            border: none;
+            border-radius: 24px 0 0 24px;
+            width: 80%;
+            outline: none;
+        }
 
-/* Cards Section */
-.cards-section {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 20px;
-    padding: 20px 20px;
-    background-color: rgba(0, 0, 0, 0.6);
-}
+        .search-form button {
+            padding: 12px 20px;
+            font-size: 18px;
+            background-color: #006400;
+            color: white;
+            border: none;
+            border-radius: 0 24px 24px 0;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
 
-.card {
-    width: 300px;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    transition: transform 0.3s;
-    background-color: #fff;
-}
+        .search-form button:hover {
+            background-color: #004d00;
+        }
 
-.card:hover {
-    transform: scale(1.05);
-}
+        /* Cards Section */
+        .cards-section {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            padding: 20px 20px;
+            background-color: rgba(0, 0, 0, 0.6);
+        }
 
-.card img {
-    width: 100%;
-    height: 200px;
-    object-fit: cover;
-}
+        .card {
+            width: 300px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s;
+            background-color: #fff;
+        }
 
-.card h3 {
-    font-size: 24px;
-    color: #ff0000;
-    margin: 10px 0;
-}
+        .card:hover {
+            transform: scale(1.05);
+        }
 
-.rating {
-    font-size: 16px;
-    color: #ffcc00;
-    padding: 5px 0;
-    margin-left: 10px;
-}
+        .card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
 
-.card p {
-    font-size: 16px;
-    color: #666;
-    padding: 0 10px 20px;
-}
+        .card h3 {
+            font-size: 24px;
+            color: #ff0000;
+            margin: 10px 0;
+        }
 
-/* Distance Section */
-.distance-section {
-    background-color: rgba(255, 255, 255, 0.8); /* Subtle white background with transparency */
-    padding: 20px;
-    border-radius: 8px;
-    margin: 20px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
+        /* Gallery Section */
+        .gallery-section {
+            padding: 20px;
+            background-color: #fff;
+            margin-top: 20px;
+        }
 
-.distance-section h3 {
-    font-size: 24px;
-    font-weight: bold;
-    color: #006400; /* Dark green for the title */
-    margin-bottom: 15px;
-    text-align: center;
-}
+        .image-gallery {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
 
-.distance-section ul {
-    list-style-type: none; /* Remove default list styling */
-    padding: 0;
-}
+        .gallery-image {
+            width: 200px;
+            height: auto;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
 
-.distance-section li {
-    background: linear-gradient(to right, #009639, #d52b1e); /* Gradient matching Kenya's flag */
-    color: white;
-    padding: 10px 15px;
-    border-radius: 5px;
-    margin-bottom: 10px;
-    font-size: 18px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    transition: transform 0.3s ease;
-}
+        /* Distance Section */
+        .distance-section {
+            background-color: rgba(255, 255, 255, 0.8); /* Subtle white background with transparency */
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
 
-.distance-section li strong {
-    font-weight: bold;
-    color: #ffcc00; /* Highlight destinations in gold */
-}
+        .distance-section h3 {
+            font-size: 24px;
+            font-weight: bold;
+            color: #006400;
+            text-align: center;
+        }
 
-.distance-section li:hover {
-    transform: scale(1.05); /* Slight zoom on hover */
-    background: linear-gradient(to right, #d52b1e, #009639); /* Reverse gradient on hover */
-}
-
-.distance-section p {
-    text-align: center;
-    font-size: 16px;
-    color: #333;
-}
-
-/* Footer */
-.footer {
-    padding: 10px;
-    background-color: #000;
-    color: #fff;
-    font-size: 14px;
-    text-align: center;
-    margin-top: auto;
-}
-</style>
+        /* Footer */
+        .footer {
+            padding: 10px;
+            background-color: #000;
+            color: #fff;
+            font-size: 14px;
+            text-align: center;
+            margin-top: auto;
+        }
+    </style>
+</body>
+</html>

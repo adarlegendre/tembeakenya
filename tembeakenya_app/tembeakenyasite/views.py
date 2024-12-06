@@ -27,6 +27,7 @@ def index(request):
 
     distances = []
     target_attraction = None
+    attractions = []
 
     # Fetch the target attraction based on user input
     if query:
@@ -34,17 +35,23 @@ def index(request):
 
     if target_attraction:
         logging.info(f"Target attraction found: {target_attraction}")
+        # Add the images to the target attraction data if they exist
+        if "images" in target_attraction:
+            logging.info(f"Images found for {query}: {len(target_attraction['images'])} images.")
+        else:
+            logging.warning(f"No images found for {query}.")
+        
         # Calculate the distance between Nairobi and the target attraction
         distances.append({
             'from': starting_attraction['attraction_name'],
             'to': target_attraction['attraction_name'],
             'distance': target_attraction.get('distance', 'Distance not available')
         })
+
         # Replace the attractions list with only the target attraction
         attractions = [target_attraction]
     else:
         logging.warning(f"No matching attraction found for query: '{query}'")
-        attractions = []  # No attractions to display if query doesn't match
 
     context = {
         "sitename": "Welcome To Kenya",
