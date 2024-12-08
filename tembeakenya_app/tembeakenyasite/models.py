@@ -6,9 +6,8 @@ import base64
 
 
 
-
 # Initialize Oracle Client only once
-lib_dir = r"C:\\oracle\\instantclient_23_5"
+lib_dir = r"..\\oracle\\instantclient_23_5"
 try:
     cx_Oracle.init_oracle_client(lib_dir=lib_dir)
 except Exception as err:
