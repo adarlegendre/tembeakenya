@@ -45,7 +45,9 @@
                 <!-- Main Image -->
                 
 
-                <a href="http://127.0.0.1:8000/map" class="view-polygon-link">view exact location</a>
+                <a href="http://127.0.0.1:8000/map" class="view-polygon-link">View Exact Location</a>
+
+                <a class="view-polygon-link" href="{% url 'manage_images' attraction_id=attraction.id %}">Manage Images</a>
 
 
             </div>
@@ -289,7 +291,7 @@
 
 .card {
     width: 300px;
-    height: 150px;
+    height: 200px;
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);

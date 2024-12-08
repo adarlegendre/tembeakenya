@@ -115,43 +115,32 @@ class OracleDatabase:
     def insert_image_for_attraction(attraction_id, image_url):
         """Inserts a new image for a given attraction."""
         try:
-            # Step 1: Define the DSN (Data Source Name) and credentials for Oracle DB connection
             dsn_tns = cx_Oracle.makedsn("gort.fit.vutbr.cz", 1521, service_name="orclpdb")
             
-            # Step 2: Connect to the Oracle Database
+            # Connect to the database
             with cx_Oracle.connect(user="xotuyag00", password="0syIgeF2", dsn=dsn_tns) as connection:
                 
-                # Step 3: Fetch the image data from the URL
-                response = requests.get(image_url)
-                response.raise_for_status()  # Raise an error for bad responses
-                image_data = response.content
-
-                # Step 4: Prepare a cursor for inserting into the images table
+                # Prepare cursor to insert into images table
                 with connection.cursor() as cursor:
-                    # Step 5: Prepare the SQL query to insert a new image
                     query = """
-                        INSERT INTO images (attraction_id, photo)
-                        VALUES (:attraction_id, :photo)
+                        INSERT INTO images (attraction_id, photo_url)
+                        VALUES (:attraction_id, :photo_url)
                     """
-
-                    # Step 6: Execute the insert query with the parameters
                     cursor.execute(query, {
                         "attraction_id": attraction_id,
-                        "photo": image_data
+                        "photo_url": image_url
                     })
-
-                # Step 7: Commit the transaction
+                    
+                # Commit changes
                 connection.commit()
+                logging.info("Image inserted successfully for attraction_id: %s", attraction_id)
+            
+            return True  # Return True on success
 
-            logging.info("Image inserted successfully for attraction_id: %s", attraction_id)
-
-        except requests.exceptions.RequestException as req_err:
-            logging.error(f"Failed to fetch image from URL: {image_url}. Error: {req_err}")
-        except cx_Oracle.DatabaseError as db_err:
-            error, = db_err.args
-            logging.error(f"Database error occurred: {error.message}")
         except Exception as e:
-            logging.error(f"Unexpected error: {e}")
+            logging.error(f"Error inserting image for attraction {attraction_id}: {e}")
+            return False
+
 
 
     @staticmethod
@@ -291,9 +280,111 @@ class OracleDatabase:
         except cx_Oracle.DatabaseError as e:
             logging.error(f"Database error while fetching attraction by name: {e}")
             return None
+    @staticmethod
+    def fetch_attraction_by_id(attraction_id):
+        """
+        Fetches an attraction by its ID along with associated images.
+        """
+        try:
+            dsn_tns = cx_Oracle.makedsn("gort.fit.vutbr.cz", 1521, service_name="orclpdb")
+            connection = cx_Oracle.connect(user="xotuyag00", password="0syIgeF2", dsn=dsn_tns)
+            cursor = connection.cursor()
 
+            # Query to fetch attraction details
+            attraction_query = """
+                SELECT id, attraction_name, category_id, SDO_UTIL.TO_GEOJSON(shape) AS geojson
+                FROM attractions
+                WHERE id = :attraction_id
+            """
+            cursor.execute(attraction_query, {"attraction_id": attraction_id})
+            result = cursor.fetchone()
 
+            if not result:
+                logging.warning(f"No attraction found with ID {attraction_id}.")
+                return None
+
+            attraction_data = {
+                "id": result[0],
+                "attraction_name": result[1],
+                "category_id": result[2],
+                "geojson": result[3],  # If geojson is needed
+            }
+
+            # Query to fetch images for this attraction
+            images_query = """
+                SELECT id, photoblob FROM images
+                WHERE attraction_id = :attraction_id
+            """
+            cursor.execute(images_query, {"attraction_id": attraction_id})
+            images = []
+            for row in cursor:
+                image_id = row[0]
+                photo_blob = row[1]
+                if photo_blob:
+                    base64_encoded = base64.b64encode(photo_blob.read()).decode('utf-8')
+                    images.append({"id": image_id, "photo": base64_encoded})
+            attraction_data["images"] = images
+
+            cursor.close()
+            connection.close()
+
+            return attraction_data
+        except Exception as e:
+            logging.error(f"Error fetching attraction by ID {attraction_id}: {e}")
+            return None
+    @staticmethod
+    def delete_image_by_id(image_id):
+        """Deletes an image from the database by its image_id."""
+        try:
+            dsn_tns = cx_Oracle.makedsn("gort.fit.vutbr.cz", 1521, service_name="orclpdb")
+            connection = cx_Oracle.connect(user="xotuyag00", password="0syIgeF2", dsn=dsn_tns)
+            cursor = connection.cursor()
+
+            # Delete the image from the images table using the image_id
+            delete_query = """
+                DELETE FROM images
+                WHERE id = :image_id
+            """
+            cursor.execute(delete_query, {"image_id": image_id})
+
+            # Commit the transaction
+            connection.commit()
+
+            # Close the cursor and connection
+            cursor.close()
+            connection.close()
+
+            return True  # Return True if the image was successfully deleted
+        except Exception as e:
+            logging.error(f"Error deleting image with ID {image_id}: {e}")
+            return False  # Return False if there was an error
     
     
+    @staticmethod
+    def update_image_by_id(image_id, new_image_url):
+        """Updates an image's URL in the database by its image_id."""
+        try:
+            dsn_tns = cx_Oracle.makedsn("gort.fit.vutbr.cz", 1521, service_name="orclpdb")
+            connection = cx_Oracle.connect(user="xotuyag00", password="0syIgeF2", dsn=dsn_tns)
+            cursor = connection.cursor()
 
+            # Update the image URL using the image_id
+            update_query = """
+                UPDATE images
+                SET photo_url = :new_image_url
+                WHERE id = :image_id
+            """
+            cursor.execute(update_query, {"new_image_url": new_image_url, "image_id": image_id})
+
+            # Commit the transaction
+            connection.commit()
+
+            # Close the cursor and connection
+            cursor.close()
+            connection.close()
+
+            return True  # Return True if the image was successfully updated
+        except Exception as e:
+            logging.error(f"Error updating image with ID {image_id}: {e}")
+            return False  # Return False if there was an error    
    
