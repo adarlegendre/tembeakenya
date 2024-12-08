@@ -1,4 +1,5 @@
-from django.shortcuts import render
+
+from django.shortcuts import render, redirect
 from django.template import loader
 from django.shortcuts import render
 from django.http import HttpResponse
@@ -87,6 +88,60 @@ def attraction_map(request):
 
     # Render the HTML page
     return render(request, 'tembeakenyasite/attractions_map.html', context)
+
+def manage_images_view(request, attraction_id):
+    """View to manage images for a specific attraction."""
+    try:
+        # Fetch the attraction by ID
+        attraction = OracleDatabase.fetch_attraction_by_id(attraction_id)
+        if not attraction:
+            return HttpResponse("Attraction not found.", status=404)
+
+        # Fetch the images associated with the attraction
+        images = attraction.get("images", [])
+        
+        if request.method == 'POST':
+            image_url = request.POST.get('image_url')
+            if 'insert' in request.POST:
+                # Insert new image
+                if image_url:
+                    try:
+                        OracleDatabase.insert_image_for_attraction(attraction_id, image_url)
+                        return redirect('manage_images', attraction_id=attraction_id)  # Redirect after inserting the image
+                    except Exception as e:
+                        return HttpResponse(f"Error inserting image: {e}", status=500)
+            elif 'update' in request.POST:
+                image_id = request.POST.get('image_id')
+                if image_url and image_id:
+                    try:
+                        OracleDatabase.update_image_for_attraction(image_id, image_url)
+                        return redirect('manage_images', attraction_id=attraction_id)  # Redirect after updating the image
+                    except Exception as e:
+                        return HttpResponse(f"Error updating image: {e}", status=500)
+
+        # Render the page with the images
+        return render(request, 'tembeakenyasite/manage_images.html', {
+            'attraction': attraction,
+            'images': images,
+            'attraction_id': attraction_id
+        })
+    
+    except Exception as e:
+        return HttpResponse(f"Unexpected error: {e}", status=500)
+
+def delete_image_view(request, image_id):
+    if request.method == 'POST':
+        try:
+            # Call the delete_image_by_id method from OracleDatabase
+            success = OracleDatabase.delete_image_by_id(image_id)
+            
+            if success:
+                return redirect('manage_images', attraction_id=request.POST.get('attraction_id'))  # Redirect to the manage images page
+            else:
+                return HttpResponse("Failed to delete the image.", status=500)
+        except Exception as e:
+            return HttpResponse(f"Error deleting image: {e}", status=500)
+    return HttpResponse("Invalid request method.", status=405)
 
 def insert_image_view(request):
     """View to insert an image for a specific attraction."""
@@ -198,6 +253,8 @@ def insert_image_view(request):
             return HttpResponse("Please provide both attraction ID and image URL.")
 
     return render(request, 'tembeakenyasite/insert_image.html')
+
+    
 
 
 
